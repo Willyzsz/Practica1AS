@@ -1,0 +1,14 @@
+{% for recordatorio in recordatorios %}
+<tr>
+    <td>{{ recordatorio.idRecordatorio }}</td>
+    <td>{{ recordatorio.tituloPendiente }}</td>
+    <td>{{ recordatorio.nombreCategoria or 'Sin categoría' }}</td>
+    <td>{{ recordatorio.mensaje }}</td>
+    <td>
+        <small>
+            <strong>Fecha:</strong> {{ recordatorio.fecha }}<br>
+            <strong>Hora:</strong> {{ recordatorio.hora }}
+        </small>
+    </td>
+</tr>
+{% endfor %}

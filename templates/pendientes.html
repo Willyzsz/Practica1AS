@@ -1,0 +1,44 @@
+<form id="frmPendiente" method="post">
+    <div class="mb-1">
+        <label>Título</label>
+        <input type="text" class="form-control" id="txtTitulo" name="txtTitulo" required>
+    </div>
+    <div class="mb-1">
+        <label>Descripción</label>
+        <textarea class="form-control" id="txtDescripcion" name="txtDescripcion" rows="3" required></textarea>
+    </div>
+    <div class="mb-1">
+        <label>Estado</label>
+        <select class="form-control" id="txtEstado" name="txtEstado" required>
+            <option value="">Seleccionar estado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en_progreso">En Progreso</option>
+            <option value="completado">Completado</option>
+        </select>
+    </div>
+    <div class="mb-1">
+        <label>Categoría</label>
+        <select class="form-control" id="selectCategoria" name="selectCategoria">
+            <option value="">Seleccionar categoría</option>
+        </select>
+    </div>
+    <div class="mb-1 text-end">
+        <button class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead class="table-active">
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyPendientes"></tbody>
+    </table>
+</div>

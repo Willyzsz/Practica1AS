@@ -1,0 +1,16 @@
+{% for pendiente in pendientes %}
+<tr>
+    <td>{{ pendiente.idPendiente }}</td>
+    <td>{{ pendiente.tituloPendiente }}</td>
+    <td>{{ pendiente.descripcion }}</td>
+    <td>
+        <span class="badge 
+            {% if pendiente.estado == 'completado' %}bg-success
+            {% elif pendiente.estado == 'en_progreso' %}bg-warning
+            {% else %}bg-secondary{% endif %}">
+            {{ pendiente.estado }}
+        </span>
+    </td>
+    <td>{{ pendiente.nombreCategoria or 'Sin categoría' }}</td>
+</tr>
+{% endfor %}

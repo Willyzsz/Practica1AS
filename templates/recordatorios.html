@@ -1,0 +1,41 @@
+<form id="frmRecordatorio" method="post">
+    <div class="mb-1">
+        <label>Pendiente</label>
+        <select class="form-control" id="selectPendiente" name="selectPendiente" required>
+            <option value="">Seleccionar pendiente</option>
+        </select>
+    </div>
+    <div class="mb-1">
+        <label>Categoría</label>
+        <select class="form-control" id="selectCategoriaRecordatorio" name="selectCategoriaRecordatorio">
+            <option value="">Seleccionar categoría</option>
+        </select>
+    </div>
+    <div class="mb-1">
+        <label>Mensaje</label>
+        <textarea class="form-control" id="txtMensaje" name="txtMensaje" rows="3" required></textarea>
+    </div>
+    <div class="mb-1">
+        <label>Fecha y Hora</label>
+        <input type="datetime-local" class="form-control" id="txtFechaHora" name="txtFechaHora">
+    </div>
+    <div class="mb-1 text-end">
+        <button class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead class="table-active">
+            <tr>
+                <th>ID</th>
+                <th>Pendiente</th>
+                <th>Categoría</th>
+                <th>Mensaje</th>
+                <th>Fecha/Hora</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tbodyRecordatorios"></tbody>
+    </table>
+</div>

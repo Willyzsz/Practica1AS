@@ -17,16 +17,17 @@ app.config(function ($routeProvider, $locationProvider) {
         templateUrl: "/app",
         controller: "appCtrl"
     })
-    .when("/productos", {
-        templateUrl: "/productos",
-        controller: "productosCtrl"
+    .when("/categorias", {
+        templateUrl: "/categorias",
+        controller: "categoriasCtrl"
     })
-
-
-
-    .when("/decoraciones", {
-        templateUrl: "/decoraciones",
-        controller: "decoracionesCtrl"
+    .when("/pendientes", {
+        templateUrl: "/pendientes",
+        controller: "pendientesCtrl"
+    })
+    .when("/recordatorios", {
+        templateUrl: "/recordatorios",
+        controller: "recordatoriosCtrl"
     })
 
 
@@ -81,7 +82,7 @@ app.controller("appCtrl", function ($scope, $http) {
         $.post("iniciarSesion", $(this).serialize(), function (respuesta) {
             if (respuesta.length) {
                 alert("Iniciaste Sesión")
-                window.location = "/#/productos"
+                window.location = "/#/categorias"
 
                 return
             }
@@ -90,14 +91,14 @@ app.controller("appCtrl", function ($scope, $http) {
         })
     })
 })
-app.controller("productosCtrl", function ($scope, $http) {
-    function buscarProductos() {
-        $.get("/tbodyProductos", function (trsHTML) {
-            $("#tbodyProductos").html(trsHTML)
+app.controller("categoriasCtrl", function ($scope, $http) {
+    function buscarCategorias() {
+        $.get("/tbodyCategorias", function (trsHTML) {
+            $("#tbodyCategorias").html(trsHTML)
         })
     }
 
-    buscarProductos()
+    buscarCategorias()
     
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true
@@ -106,46 +107,56 @@ app.controller("productosCtrl", function ($scope, $http) {
       cluster: "us2"
     })
 
-    var channel = pusher.subscribe("canalProductos")
-    channel.bind("eventoProductos", function(data) {
-        // alert(JSON.stringify(data))
-        buscarProductos()
+    var channel = pusher.subscribe("canalCategorias")
+    channel.bind("eventoCategorias", function(data) {
+        buscarCategorias()
     })
 
-    $(document).on("submit", "#frmProducto", function (event) {
+    $(document).on("submit", "#frmCategoria", function (event) {
         event.preventDefault()
 
-        $.post("/producto", {
+        $.post("/categoria", {
             id: "",
-            nombre: $("#txtNombre").val(),
-            precio: $("#txtPrecio").val(),
-            existencias: $("#txtExistencias").val(),
+            nombre: $("#txtNombre").val()
+        }, function() {
+            $("#frmCategoria")[0].reset()
+            buscarCategorias()
         })
     })
 
-    $(document).on("click", ".btn-ingredientes", function (event) {
+    $(document).on("click", ".btn-editar-categoria", function (event) {
         const id = $(this).data("id")
-
-        $.get(`/productos/ingredientes/${id}`, function (html) {
-            modal(html, "Ingredientes", [
-                {html: "Aceptar", class: "btn btn-secondary", fun: function (event) {
-                    closeModal()
-                }}
-            ])
+        
+        $.get(`/categoria/${id}`, function (data) {
+            if (data.length > 0) {
+                $("#txtNombre").val(data[0].nombreCategoria)
+                $("#frmCategoria").data("edit-id", id)
+            }
         })
     })
 })
 
-
-
-app.controller("decoracionesCtrl", function ($scope, $http) {
-    function buscarDecoraciones() {
-        $.get("/tbodyDecoraciones", function (trsHTML) {
-            $("#tbodyDecoraciones").html(trsHTML)
+app.controller("pendientesCtrl", function ($scope, $http) {
+    function buscarPendientes() {
+        $.get("/tbodyPendientes", function (trsHTML) {
+            $("#tbodyPendientes").html(trsHTML)
         })
     }
 
-    buscarDecoraciones()
+    function cargarCategorias() {
+        $.get("/categorias/all", function (data) {
+            const select = $("#selectCategoria")
+            select.empty()
+            select.append('<option value="">Seleccionar categoría</option>')
+            
+            data.forEach(function(categoria) {
+                select.append(`<option value="${categoria.idCategoria}">${categoria.nombreCategoria}</option>`)
+            })
+        })
+    }
+
+    buscarPendientes()
+    cargarCategorias()
     
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true
@@ -154,20 +165,116 @@ app.controller("decoracionesCtrl", function ($scope, $http) {
       cluster: "us2"
     })
 
-    var channel = pusher.subscribe("canalDecoraciones")
-    channel.bind("eventoDecoraciones", function(data) {
-        // alert(JSON.stringify(data))
-        buscarDecoraciones()
+    var channel = pusher.subscribe("canalPendientes")
+    channel.bind("eventoPendientes", function(data) {
+        buscarPendientes()
     })
 
-    $(document).on("submit", "#frmDecoracion", function (event) {
+    $(document).on("submit", "#frmPendiente", function (event) {
         event.preventDefault()
 
-        $.post("/decoracion", {
-            id: "",
-            nombre: $("#txtNombre").val(),
-            precio: $("#txtPrecio").val(),
-            existencias: $("#txtExistencias").val(),
+        $.post("/pendiente", {
+            id: $("#frmPendiente").data("edit-id") || "",
+            titulo: $("#txtTitulo").val(),
+            descripcion: $("#txtDescripcion").val(),
+            estado: $("#txtEstado").val(),
+            idCategoria: $("#selectCategoria").val()
+        }, function() {
+            $("#frmPendiente")[0].reset()
+            $("#frmPendiente").removeData("edit-id")
+            buscarPendientes()
+        })
+    })
+
+    $(document).on("click", ".btn-editar-pendiente", function (event) {
+        const id = $(this).data("id")
+        
+        $.get(`/pendiente/${id}`, function (data) {
+            if (data.length > 0) {
+                $("#txtTitulo").val(data[0].tituloPendiente)
+                $("#txtDescripcion").val(data[0].descripcion)
+                $("#txtEstado").val(data[0].estado)
+                $("#selectCategoria").val(data[0].idCategoria)
+                $("#frmPendiente").data("edit-id", id)
+            }
+        })
+    })
+})
+
+app.controller("recordatoriosCtrl", function ($scope, $http) {
+    function buscarRecordatorios() {
+        $.get("/tbodyRecordatorios", function (trsHTML) {
+            $("#tbodyRecordatorios").html(trsHTML)
+        })
+    }
+
+    function cargarPendientes() {
+        $.get("/pendientes/all", function (data) {
+            const select = $("#selectPendiente")
+            select.empty()
+            select.append('<option value="">Seleccionar pendiente</option>')
+            
+            data.forEach(function(pendiente) {
+                select.append(`<option value="${pendiente.idPendiente}">${pendiente.tituloPendiente}</option>`)
+            })
+        })
+    }
+
+    function cargarCategorias() {
+        $.get("/categorias/all", function (data) {
+            const select = $("#selectCategoriaRecordatorio")
+            select.empty()
+            select.append('<option value="">Seleccionar categoría</option>')
+            
+            data.forEach(function(categoria) {
+                select.append(`<option value="${categoria.idCategoria}">${categoria.nombreCategoria}</option>`)
+            })
+        })
+    }
+
+    buscarRecordatorios()
+    cargarPendientes()
+    cargarCategorias()
+    
+    // Enable pusher logging - don't include this in production
+    Pusher.logToConsole = true
+
+    var pusher = new Pusher("e57a8ad0a9dc2e83d9a2", {
+      cluster: "us2"
+    })
+
+    var channel = pusher.subscribe("canalRecordatorios")
+    channel.bind("eventoRecordatorios", function(data) {
+        buscarRecordatorios()
+    })
+
+    $(document).on("submit", "#frmRecordatorio", function (event) {
+        event.preventDefault()
+
+        $.post("/recordatorio", {
+            id: $("#frmRecordatorio").data("edit-id") || "",
+            idPendiente: $("#selectPendiente").val(),
+            idCategoria: $("#selectCategoriaRecordatorio").val(),
+            mensaje: $("#txtMensaje").val(),
+            fechaHora: $("#txtFechaHora").val()
+        }, function() {
+            $("#frmRecordatorio")[0].reset()
+            $("#frmRecordatorio").removeData("edit-id")
+            buscarRecordatorios()
+        })
+    })
+
+    $(document).on("click", ".btn-editar-recordatorio", function (event) {
+        const id = $(this).data("id")
+        
+        $.get(`/recordatorio/${id}`, function (data) {
+            if (data.length > 0) {
+                $("#selectPendiente").val(data[0].idPendiente)
+                $("#selectCategoriaRecordatorio").val(data[0].idCategoria)
+                $("#txtMensaje").val(data[0].mensaje)
+                $("#txtFechaHora").val(data[0].fechaHora)
+                $("#frmRecordatorio").data("edit-id", id)
+            }
         })
     })
 })
@@ -191,3 +298,4 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     activeMenuOption(location.hash)
 })
+

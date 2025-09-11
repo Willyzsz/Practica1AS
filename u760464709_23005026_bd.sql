@@ -18,7 +18,10 @@ CREATE TABLE `categorias` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `categorias` (`idCategoria`, `nombreCategoria`) VALUES
-(1,	'Escolar');
+(1,	'Escolar'),
+(2,	'Trabajo'),
+(3,	'Personal'),
+(4,	'Urgente');
 
 DROP TABLE IF EXISTS `pendientes`;
 CREATE TABLE `pendientes` (
@@ -33,7 +36,10 @@ CREATE TABLE `pendientes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `pendientes` (`idPendiente`, `tituloPendiente`, `descripcion`, `estado`, `idCategoria`) VALUES
-(1,	'tarea AS',	'Primera practica',	'pediente',	1);
+(1,	'tarea AS',	'Primera practica',	'pendiente',	1),
+(2,	'Reunión de equipo',	'Reunión semanal del equipo de desarrollo',	'en_progreso',	2),
+(3,	'Comprar supermercado',	'Lista de compras para la semana',	'pendiente',	3),
+(4,	'Entrega proyecto',	'Finalizar y entregar proyecto final',	'pendiente',	4);
 
 DROP TABLE IF EXISTS `recordatorios`;
 CREATE TABLE `recordatorios` (
@@ -50,7 +56,10 @@ CREATE TABLE `recordatorios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `recordatorios` (`idRecordatorio`, `idPendiente`, `idCategoria`, `mensaje`, `fechaHora`) VALUES
-(1,	1,	1,	'Acabarlo ya',	'2025-09-11 01:19:56');
+(1,	1,	1,	'Acabarlo ya',	'2025-09-11 01:19:56'),
+(2,	2,	2,	'No olvides llevar la presentación',	'2025-01-15 10:00:00'),
+(3,	3,	3,	'Recordar comprar leche y pan',	'2025-01-14 18:30:00'),
+(4,	4,	4,	'¡Último día para entregar!',	'2025-01-20 23:59:59');
 
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE `usuarios` (
@@ -59,6 +68,10 @@ CREATE TABLE `usuarios` (
   `contrasena` varchar(55) NOT NULL,
   PRIMARY KEY (`idUsuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `usuarios` (`idUsuario`, `usuario`, `contrasena`) VALUES
+(1,	'admin',	'admin123'),
+(2,	'usuario',	'password');
 
 
 -- 2025-09-11 01:22:45 UTC
