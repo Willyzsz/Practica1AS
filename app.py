@@ -10,6 +10,10 @@ import mysql.connector
 import datetime
 import pytz
 from flask_cors import CORS, cross_origin
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Import SQLAlchemy db and blueprint
 from model_recordatorio import db
@@ -19,11 +23,11 @@ from controller_recordatorio import recordatorio_bp
 def get_db_connection():
     try:
         con = mysql.connector.connect(
-            host="185.232.14.52",
-            database="u760464709_23005026_bd",
-            user="u760464709_23005026_usr",
-            password="H6eriHv6?",
-            port=3306,
+            host=os.getenv("HOST"),
+            database=os.getenv("DATABASE"),
+            user=os.getenv("USER"),
+            password=os.getenv("PASSWORD"),
+            port=os.getenv("PORT"),
             autocommit=True,
             connect_timeout=10
         )
@@ -52,10 +56,10 @@ def pusherCategorias():
         import pusher
         
         pusher_client = pusher.Pusher(
-          app_id="2052295",
-          key="2922c4803975e3f70a0d",
-          secret="6b31b50d572bf754fe60",
-          cluster="us2",
+          app_id=os.getenv("PUSHER_APP_ID_CATEGORIAS"),
+          key=os.getenv("PUSHER_KEY_CATEGORIAS"),
+          secret=os.getenv("PUSHER_SECRET_CATEGORIAS"),
+          cluster=os.getenv("PUSHER_CLUSTER_CATEGORIAS"),
           ssl=True
         )
         
@@ -70,10 +74,10 @@ def pusherPendientes():
         import pusher
 
         pusher_client = pusher.Pusher(
-            app_id="2052296",
-            key="52712e9b9d8935dc32c5",
-            secret="9249dda1e2e33c3d0233",
-            cluster="us2",
+            app_id=os.getenv("PUSHER_APP_ID_PENDIENTES"),
+            key=os.getenv("PUSHER_KEY_PENDIENTES"),
+            secret=os.getenv("PUSHER_SECRET_PENDIENTES"),
+            cluster=os.getenv("PUSHER_CLUSTER_PENDIENTES"),
             ssl=True
         )
         
