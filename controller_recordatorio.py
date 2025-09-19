@@ -6,18 +6,24 @@ recordatorio_service = RecordatorioService()
 
 @recordatorio_bp.route("/recordatorio", methods=["POST"])
 def crear_recordatorio():
-    data = request.get_json()
-    titulo = data.get("titulo")
-    descripcion = data.get("descripcion")
-    fecha_hora = data.get("fecha_hora")
-    id_pendiente = data.get("id_pendiente")
+    if request.is_json:
+        data = request.get_json()
+        idCategoria = data.get("idCategoria")
+        mensaje = data.get("mensaje")
+        fechaHora = data.get("fechaHora")
+        idPendiente = data.get("idPendiente")
+    else:
+        idCategoria = request.form.get("idCategoria")
+        mensaje = request.form.get("mensaje")
+        fechaHora = request.form.get("fechaHora")
+        idPendiente = request.form.get("idPendiente")
 
-    if not all([titulo, descripcion, fecha_hora, id_pendiente]):
+    if not all([idCategoria, mensaje, fechaHora, idPendiente]):
         return jsonify({"error": "Faltan datos obligatorios"}), 400
 
     try:
         nuevo_recordatorio = recordatorio_service.crear_recordatorio(
-            titulo, descripcion, fecha_hora, id_pendiente
+            idCategoria, mensaje, fechaHora, idPendiente
         )
         return jsonify(nuevo_recordatorio), 201
     except Exception as e:

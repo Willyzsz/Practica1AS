@@ -4,18 +4,16 @@
 # py -m ensurepip --upgrade
 # pip install -r requirements.txt
 
-from flask import Flask
 
-from flask import render_template
-from flask import request
-from flask import jsonify, make_response
-
+from flask import Flask, render_template, request, jsonify, make_response
 import mysql.connector
-
 import datetime
 import pytz
-
 from flask_cors import CORS, cross_origin
+
+# Import SQLAlchemy db and blueprint
+from model_recordatorio import db
+from controller_recordatorio import recordatorio_bp
 
 # Database connection function
 def get_db_connection():
@@ -37,8 +35,17 @@ def get_db_connection():
 # Initialize connection
 con = get_db_connection()
 
+
 app = Flask(__name__)
 CORS(app)
+
+# Configuración de SQLAlchemy (ajusta la URI a tu base de datos si es necesario)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://u760464709_23005026_usr:H6eriHv6?@185.232.14.52:3306/u760464709_23005026_bd'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+# Registrar blueprint de recordatorio
+app.register_blueprint(recordatorio_bp)
 
 def pusherCategorias():
     try:
@@ -318,51 +325,7 @@ def guardarPendiente():
             con.close()
         return make_response(jsonify({"error": str(e)}))
 
-# CRUD operations for Recordatorios
-@app.route("/recordatorio", methods=["POST"])
-def guardarRecordatorio():
-    con = get_db_connection()
-    if not con:
-        print("Database connection failed")
-        return make_response(jsonify({"error": "Database connection failed"}))
-
-    try:
-        id = request.form.get("id")
-        idPendiente = request.form["idPendiente"]
-        idCategoria = request.form.get("idCategoria") or None
-        mensaje = request.form["mensaje"]
-        fechaHora = request.form.get("fechaHora") or datetime.datetime.now(pytz.timezone("America/Matamoros"))
-        
-        cursor = con.cursor()
-
-        if id:
-            sql = """
-            UPDATE recordatorios
-            SET idPendiente = %s,
-                idCategoria = %s,
-                mensaje = %s,
-                fechaHora = %s
-            WHERE idRecordatorio = %s
-            """
-            val = (idPendiente, idCategoria, mensaje, fechaHora, id)
-        else:
-            sql = """
-            INSERT INTO recordatorios (idPendiente, idCategoria, mensaje, fechaHora)
-            VALUES (%s, %s, %s, %s)
-            """
-            val = (idPendiente, idCategoria, mensaje, fechaHora)
-        
-        cursor.execute(sql, val)
-        con.commit()
-        cursor.close()
-        con.close()
-        
-        return make_response(jsonify({"success": True}))
-    except Exception as e:
-        print(f"Error saving recordatorio: {e}")
-        if con:
-            con.close()
-        return make_response(jsonify({"error": str(e)}))
+## La ruta /recordatorio ahora es manejada por el blueprint recordatorio_bp
 
 # Get all categorias for dropdowns
 @app.route("/categorias/all")
