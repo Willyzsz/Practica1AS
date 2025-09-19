@@ -27,7 +27,7 @@ def get_db_connection():
             database=os.getenv("DATABASE"),
             user=os.getenv("USER"),
             password=os.getenv("PASSWORD"),
-            port=os.getenv("PORT"),
+            port=int(os.getenv("PORT").strip()),
             autocommit=True,
             connect_timeout=10
         )
