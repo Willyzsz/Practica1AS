@@ -45,9 +45,9 @@ def pusherCategorias():
         import pusher
         
         pusher_client = pusher.Pusher(
-          app_id="2046005",
-          key="e57a8ad0a9dc2e83d9a2",
-          secret="8a116dd9600a3b04a3a0",
+          app_id="2052295",
+          key="2922c4803975e3f70a0d",
+          secret="6b31b50d572bf754fe60",
           cluster="us2",
           ssl=True
         )
@@ -61,34 +61,16 @@ def pusherCategorias():
 def pusherPendientes():
     try:
         import pusher
-        
+
         pusher_client = pusher.Pusher(
-          app_id="2046005",
-          key="e57a8ad0a9dc2e83d9a2",
-          secret="8a116dd9600a3b04a3a0",
-          cluster="us2",
-          ssl=True
+            app_id="2052296",
+            key="52712e9b9d8935dc32c5",
+            secret="9249dda1e2e33c3d0233",
+            cluster="us2",
+            ssl=True
         )
         
         pusher_client.trigger("canalPendientes", "eventoPendientes", {"message": "Pendientes actualizados!"})
-    except Exception as e:
-        print(f"Pusher error: {e}")
-    
-    return make_response(jsonify({}))
-
-def pusherRecordatorios():
-    try:
-        import pusher
-        
-        pusher_client = pusher.Pusher(
-          app_id="2046005",
-          key="e57a8ad0a9dc2e83d9a2",
-          secret="8a116dd9600a3b04a3a0",
-          cluster="us2",
-          ssl=True
-        )
-        
-        pusher_client.trigger("canalRecordatorios", "eventoRecordatorios", {"message": "Recordatorios actualizados!"})
     except Exception as e:
         print(f"Pusher error: {e}")
     
@@ -103,8 +85,6 @@ def app2():
     return render_template("login.html")
 
 @app.route("/iniciarSesion", methods=["POST"])
-# Usar cuando solo se quiera usar CORS en rutas específicas
-# @cross_origin()
 def iniciarSesion():
     con = get_db_connection()
     if not con:
@@ -144,6 +124,7 @@ def categorias():
 def tbodyCategorias():
     con = get_db_connection()
     if not con:
+        print("Database connection failed")
         return render_template("tbodyCategorias.html", categorias=[])
 
     try:
@@ -249,134 +230,6 @@ def tbodyRecordatorios():
             con.close()
         return render_template("tbodyRecordatorios.html", recordatorios=[])
 
-# Search routes for each table
-@app.route("/categorias/buscar", methods=["GET"])
-def buscarCategorias():
-    con = get_db_connection()
-    if not con:
-        return make_response(jsonify([]))
-
-    try:
-        args = request.args
-        busqueda = args["busqueda"]
-        busqueda = f"%{busqueda}%"
-        
-        cursor = con.cursor(dictionary=True)
-        sql = """
-        SELECT idCategoria,
-               nombreCategoria
-        FROM categorias
-        WHERE nombreCategoria LIKE %s
-        ORDER BY idCategoria DESC
-        LIMIT 10 OFFSET 0
-        """
-        val = (busqueda,)
-
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-        cursor.close()
-        con.close()
-
-        return make_response(jsonify(registros))
-    except Exception as e:
-        print(f"Error searching categorias: {e}")
-        if con:
-            con.close()
-        return make_response(jsonify([]))
-
-@app.route("/pendientes/buscar", methods=["GET"])
-def buscarPendientes():
-    if not con.is_connected():
-        con.reconnect()
-
-    args = request.args
-    busqueda = args["busqueda"]
-    busqueda = f"%{busqueda}%"
-    
-    cursor = con.cursor(dictionary=True)
-    sql = """
-    SELECT p.idPendiente,
-           p.tituloPendiente,
-           p.descripcion,
-           p.estado,
-           c.nombreCategoria
-
-    FROM pendientes p
-    LEFT JOIN categorias c ON p.idCategoria = c.idCategoria
-
-    WHERE p.tituloPendiente LIKE %s
-    OR    p.descripcion LIKE %s
-    OR    p.estado LIKE %s
-    OR    c.nombreCategoria LIKE %s
-
-    ORDER BY p.idPendiente DESC
-
-    LIMIT 10 OFFSET 0
-    """
-    val = (busqueda, busqueda, busqueda, busqueda)
-
-    try:
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-    except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error de programación en MySQL: {error}")
-        registros = []
-    finally:
-        con.close()
-
-    return make_response(jsonify(registros))
-
-@app.route("/recordatorios/buscar", methods=["GET"])
-def buscarRecordatorios():
-    if not con.is_connected():
-        con.reconnect()
-
-    args = request.args
-    busqueda = args["busqueda"]
-    busqueda = f"%{busqueda}%"
-    
-    cursor = con.cursor(dictionary=True)
-    sql = """
-    SELECT r.idRecordatorio,
-           p.tituloPendiente,
-           c.nombreCategoria,
-           r.mensaje,
-           r.fechaHora
-
-    FROM recordatorios r
-    INNER JOIN pendientes p ON r.idPendiente = p.idPendiente
-    LEFT JOIN categorias c ON r.idCategoria = c.idCategoria
-
-    WHERE p.tituloPendiente LIKE %s
-    OR    c.nombreCategoria LIKE %s
-    OR    r.mensaje LIKE %s
-
-    ORDER BY r.idRecordatorio DESC
-
-    LIMIT 10 OFFSET 0
-    """
-    val = (busqueda, busqueda, busqueda)
-
-    try:
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-        
-        # Format datetime
-        for registro in registros:
-            if registro["fechaHora"]:
-                fecha_hora = registro["fechaHora"]
-                registro["fechaHora"] = fecha_hora.strftime("%Y-%m-%d %H:%M:%S")
-                registro["fecha"] = fecha_hora.strftime("%d/%m/%Y")
-                registro["hora"] = fecha_hora.strftime("%H:%M:%S")
-                
-    except mysql.connector.errors.ProgrammingError as error:
-        print(f"Ocurrió un error de programación en MySQL: {error}")
-        registros = []
-    finally:
-        con.close()
-
-    return make_response(jsonify(registros))
-
 # CRUD operations for Categorias
 @app.route("/categoria", methods=["POST"])
 def guardarCategoria():
@@ -417,33 +270,6 @@ def guardarCategoria():
         if con:
             con.close()
         return make_response(jsonify({"error": str(e)}))
-
-@app.route("/categoria/<int:id>")
-def editarCategoria(id):
-    con = get_db_connection()
-    if not con:
-        return make_response(jsonify([]))
-
-    try:
-        cursor = con.cursor(dictionary=True)
-        sql = """
-        SELECT idCategoria, nombreCategoria
-        FROM categorias
-        WHERE idCategoria = %s
-        """
-        val = (id,)
-
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-        cursor.close()
-        con.close()
-
-        return make_response(jsonify(registros))
-    except Exception as e:
-        print(f"Error loading categoria for edit: {e}")
-        if con:
-            con.close()
-        return make_response(jsonify([]))
 
 # CRUD operations for Pendientes
 @app.route("/pendiente", methods=["POST"])
@@ -492,38 +318,12 @@ def guardarPendiente():
             con.close()
         return make_response(jsonify({"error": str(e)}))
 
-@app.route("/pendiente/<int:id>")
-def editarPendiente(id):
-    con = get_db_connection()
-    if not con:
-        return make_response(jsonify([]))
-
-    try:
-        cursor = con.cursor(dictionary=True)
-        sql = """
-        SELECT idPendiente, tituloPendiente, descripcion, estado, idCategoria
-        FROM pendientes
-        WHERE idPendiente = %s
-        """
-        val = (id,)
-
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-        cursor.close()
-        con.close()
-
-        return make_response(jsonify(registros))
-    except Exception as e:
-        print(f"Error loading pendiente for edit: {e}")
-        if con:
-            con.close()
-        return make_response(jsonify([]))
-
 # CRUD operations for Recordatorios
 @app.route("/recordatorio", methods=["POST"])
 def guardarRecordatorio():
     con = get_db_connection()
     if not con:
+        print("Database connection failed")
         return make_response(jsonify({"error": "Database connection failed"}))
 
     try:
@@ -556,8 +356,6 @@ def guardarRecordatorio():
         con.commit()
         cursor.close()
         con.close()
-
-        pusherRecordatorios()
         
         return make_response(jsonify({"success": True}))
     except Exception as e:
@@ -565,33 +363,6 @@ def guardarRecordatorio():
         if con:
             con.close()
         return make_response(jsonify({"error": str(e)}))
-
-@app.route("/recordatorio/<int:id>")
-def editarRecordatorio(id):
-    con = get_db_connection()
-    if not con:
-        return make_response(jsonify([]))
-
-    try:
-        cursor = con.cursor(dictionary=True)
-        sql = """
-        SELECT idRecordatorio, idPendiente, idCategoria, mensaje, fechaHora
-        FROM recordatorios
-        WHERE idRecordatorio = %s
-        """
-        val = (id,)
-
-        cursor.execute(sql, val)
-        registros = cursor.fetchall()
-        cursor.close()
-        con.close()
-
-        return make_response(jsonify(registros))
-    except Exception as e:
-        print(f"Error loading recordatorio for edit: {e}")
-        if con:
-            con.close()
-        return make_response(jsonify([]))
 
 # Get all categorias for dropdowns
 @app.route("/categorias/all")

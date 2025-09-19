@@ -29,14 +29,11 @@ app.config(function ($routeProvider, $locationProvider) {
         templateUrl: "/recordatorios",
         controller: "recordatoriosCtrl"
     })
-
-
-
-
     .otherwise({
         redirectTo: "/"
     })
 })
+
 app.run(["$rootScope", "$location", "$timeout", function($rootScope, $location, $timeout) {
     function actualizarFechaHora() {
         lxFechaHora = DateTime
@@ -91,6 +88,7 @@ app.controller("appCtrl", function ($scope, $http) {
         })
     })
 })
+
 app.controller("categoriasCtrl", function ($scope, $http) {
     function buscarCategorias() {
         $.get("/tbodyCategorias", function (trsHTML) {
@@ -103,8 +101,8 @@ app.controller("categoriasCtrl", function ($scope, $http) {
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true
 
-    var pusher = new Pusher("e57a8ad0a9dc2e83d9a2", {
-      cluster: "us2"
+    var pusher = new Pusher("2922c4803975e3f70a0d", {
+        cluster: "us2"
     })
 
     var channel = pusher.subscribe("canalCategorias")
@@ -112,6 +110,7 @@ app.controller("categoriasCtrl", function ($scope, $http) {
         buscarCategorias()
     })
 
+    $(document).off("submit", "#frmCategoria")
     $(document).on("submit", "#frmCategoria", function (event) {
         event.preventDefault()
 
@@ -123,17 +122,6 @@ app.controller("categoriasCtrl", function ($scope, $http) {
             buscarCategorias()
         })
     })
-
-    $(document).on("click", ".btn-editar-categoria", function (event) {
-        const id = $(this).data("id")
-        
-        $.get(`/categoria/${id}`, function (data) {
-            if (data.length > 0) {
-                $("#txtNombre").val(data[0].nombreCategoria)
-                $("#frmCategoria").data("edit-id", id)
-            }
-        })
-    })
 })
 
 app.controller("pendientesCtrl", function ($scope, $http) {
@@ -142,6 +130,8 @@ app.controller("pendientesCtrl", function ($scope, $http) {
             $("#tbodyPendientes").html(trsHTML)
         })
     }
+
+    buscarPendientes()
 
     function cargarCategorias() {
         $.get("/categorias/all", function (data) {
@@ -155,13 +145,12 @@ app.controller("pendientesCtrl", function ($scope, $http) {
         })
     }
 
-    buscarPendientes()
     cargarCategorias()
     
     // Enable pusher logging - don't include this in production
     Pusher.logToConsole = true
 
-    var pusher = new Pusher("e57a8ad0a9dc2e83d9a2", {
+    var pusher = new Pusher("52712e9b9d8935dc32c5", {
       cluster: "us2"
     })
 
@@ -170,6 +159,7 @@ app.controller("pendientesCtrl", function ($scope, $http) {
         buscarPendientes()
     })
 
+    $(document).off("submit", "#frmPendiente")
     $(document).on("submit", "#frmPendiente", function (event) {
         event.preventDefault()
 
@@ -183,20 +173,6 @@ app.controller("pendientesCtrl", function ($scope, $http) {
             $("#frmPendiente")[0].reset()
             $("#frmPendiente").removeData("edit-id")
             buscarPendientes()
-        })
-    })
-
-    $(document).on("click", ".btn-editar-pendiente", function (event) {
-        const id = $(this).data("id")
-        
-        $.get(`/pendiente/${id}`, function (data) {
-            if (data.length > 0) {
-                $("#txtTitulo").val(data[0].tituloPendiente)
-                $("#txtDescripcion").val(data[0].descripcion)
-                $("#txtEstado").val(data[0].estado)
-                $("#selectCategoria").val(data[0].idCategoria)
-                $("#frmPendiente").data("edit-id", id)
-            }
         })
     })
 })
@@ -236,18 +212,8 @@ app.controller("recordatoriosCtrl", function ($scope, $http) {
     cargarPendientes()
     cargarCategorias()
     
-    // Enable pusher logging - don't include this in production
-    Pusher.logToConsole = true
 
-    var pusher = new Pusher("e57a8ad0a9dc2e83d9a2", {
-      cluster: "us2"
-    })
-
-    var channel = pusher.subscribe("canalRecordatorios")
-    channel.bind("eventoRecordatorios", function(data) {
-        buscarRecordatorios()
-    })
-
+    $(document).off("submit", "#frmRecordatorio")
     $(document).on("submit", "#frmRecordatorio", function (event) {
         event.preventDefault()
 
@@ -264,22 +230,20 @@ app.controller("recordatoriosCtrl", function ($scope, $http) {
         })
     })
 
-    $(document).on("click", ".btn-editar-recordatorio", function (event) {
-        const id = $(this).data("id")
+    // $(document).on("click", ".btn-editar-recordatorio", function (event) {
+    //     const id = $(this).data("id")
         
-        $.get(`/recordatorio/${id}`, function (data) {
-            if (data.length > 0) {
-                $("#selectPendiente").val(data[0].idPendiente)
-                $("#selectCategoriaRecordatorio").val(data[0].idCategoria)
-                $("#txtMensaje").val(data[0].mensaje)
-                $("#txtFechaHora").val(data[0].fechaHora)
-                $("#frmRecordatorio").data("edit-id", id)
-            }
-        })
-    })
+    //     $.get(`/recordatorio/${id}`, function (data) {
+    //         if (data.length > 0) {
+    //             $("#selectPendiente").val(data[0].idPendiente)
+    //             $("#selectCategoriaRecordatorio").val(data[0].idCategoria)
+    //             $("#txtMensaje").val(data[0].mensaje)
+    //             $("#txtFechaHora").val(data[0].fechaHora)
+    //             $("#frmRecordatorio").data("edit-id", id)
+    //         }
+    //     })
+    // })
 })
-
-
 
 const DateTime = luxon.DateTime
 let lxFechaHora
