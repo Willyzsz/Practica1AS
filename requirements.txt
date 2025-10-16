@@ -5,3 +5,4 @@ pytz
 Flask-Cors
 pusher
 python-dotenv
+flask_sqlalchemy
