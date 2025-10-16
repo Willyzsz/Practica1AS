@@ -515,7 +515,7 @@ def getAllPendientes():
     try:
         cursor = con.cursor(dictionary=True)
         sql = """
-        SELECT idPendiente, tituloPendiente
+        SELECT idPendiente, tituloPendiente, estado
         FROM pendientes
         ORDER BY tituloPendiente
         """
@@ -528,6 +528,48 @@ def getAllPendientes():
         return make_response(jsonify(registros))
     except Exception as e:
         print(f"Error loading all pendientes: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify([]))
+
+# Get all recordatorios for counting
+@app.route("/recordatorios/all")
+@login_required
+def getAllRecordatorios():
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify([]))
+
+    try:
+        cursor = con.cursor(dictionary=True)
+        sql = """
+        SELECT r.idRecordatorio,
+               p.tituloPendiente,
+               c.nombreCategoria,
+               r.mensaje,
+               r.fechaHora
+        FROM recordatorios r
+        INNER JOIN pendientes p ON r.idPendiente = p.idPendiente
+        LEFT JOIN categorias c ON r.idCategoria = c.idCategoria
+        ORDER BY r.idRecordatorio DESC
+        """
+
+        cursor.execute(sql)
+        registros = cursor.fetchall()
+
+        # Format datetime
+        for registro in registros:
+            if registro["fechaHora"]:
+                fecha_hora = registro["fechaHora"]
+                registro["fechaHora"] = fecha_hora.strftime("%Y-%m-%d %H:%M:%S")
+                registro["fecha"] = fecha_hora.strftime("%d/%m/%Y")
+                registro["hora"] = fecha_hora.strftime("%H:%M:%S")
+
+        cursor.close()
+        con.close()
+        return make_response(jsonify(registros))
+    except Exception as e:
+        print(f"Error loading all recordatorios: {e}")
         if con:
             con.close()
         return make_response(jsonify([]))

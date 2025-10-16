@@ -183,23 +183,21 @@ function cargarEstadisticas() {
     });
 
     // Cargar estadísticas de recordatorios
-    $.get("/tbodyRecordatorios", function(html) {
-        const recordatorios = $(html).find("tr").length;
-        $("#totalRecordatorios").text(recordatorios);
+    $.get("/recordatorios/all", function(data) {
+        $("#totalRecordatorios").text(data.length);
     });
 
     // Cargar pendientes recientes
-    $.get("/tbodyPendientes", function(html) {
-        const pendientes = $(html).find("tr").slice(0, 5);
+    $.get("/pendientes/all", function(data) {
+        const pendientes = data.slice(0, 5);
         let htmlPendientes = "";
         
         if (pendientes.length === 0) {
             htmlPendientes = '<div class="text-center text-muted"><p>No hay pendientes</p></div>';
         } else {
-            pendientes.each(function() {
-                const titulo = $(this).find("td:eq(1)").text();
-                const estado = $(this).find("td:eq(3)").text();
-                const categoria = $(this).find("td:eq(4)").text();
+            pendientes.forEach(function(pendiente) {
+                const titulo = pendiente.tituloPendiente;
+                const estado = pendiente.estado;
                 
                 let badgeClass = "bg-secondary";
                 if (estado === "completado") badgeClass = "bg-success";
@@ -209,8 +207,7 @@ function cargarEstadisticas() {
                 htmlPendientes += `
                     <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
                         <div>
-                            <strong>${titulo}</strong><br>
-                            <small class="text-muted">${categoria}</small>
+                            <strong>${titulo}</strong>
                         </div>
                         <span class="badge ${badgeClass}">${estado}</span>
                     </div>
@@ -222,24 +219,25 @@ function cargarEstadisticas() {
     });
 
     // Cargar recordatorios próximos
-    $.get("/tbodyRecordatorios", function(html) {
-        const recordatorios = $(html).find("tr").slice(0, 5);
+    $.get("/recordatorios/all", function(data) {
+        const recordatorios = data.slice(0, 5);
         let htmlRecordatorios = "";
         
         if (recordatorios.length === 0) {
             htmlRecordatorios = '<div class="text-center text-muted"><p>No hay recordatorios</p></div>';
         } else {
-            recordatorios.each(function() {
-                const pendiente = $(this).find("td:eq(1)").text();
-                const mensaje = $(this).find("td:eq(3)").text();
-                const fecha = $(this).find("td:eq(4)").text();
+            recordatorios.forEach(function(recordatorio) {
+                const pendiente = recordatorio.tituloPendiente;
+                const mensaje = recordatorio.mensaje;
+                const fecha = recordatorio.fecha;
+                const hora = recordatorio.hora;
                 
                 htmlRecordatorios += `
                     <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
                         <div>
                             <strong>${pendiente}</strong><br>
                             <small class="text-muted">${mensaje}</small><br>
-                            <small class="text-info">${fecha}</small>
+                            <small class="text-info">${fecha} ${hora}</small>
                         </div>
                         <i class="bi bi-bell text-warning"></i>
                     </div>
