@@ -87,8 +87,6 @@ def pusherPendientes():
 
 @app.route("/")
 def index():
-    if 'idUsuario' not in session:
-        return redirect(url_for('login'))
     return render_template("index.html", session=session)
 
 @app.route("/login")
@@ -96,7 +94,6 @@ def login():
     return render_template("login.html")
 
 @app.route("/dashboard")
-@login_required
 def dashboard():
     return render_template("dashboard.html", session=session)
 
@@ -141,7 +138,19 @@ def iniciarSesion():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect("/")
+
+@app.route("/C1")
+def C1():
+    return render_template("C1.html")
+
+@app.route("/C2")
+def C2():
+    return render_template("C2.html")
+
+@app.route("/C3")
+def C3():
+    return render_template("C3.html")
 
 @app.route("/categorias")
 @login_required
@@ -573,6 +582,73 @@ def getAllRecordatorios():
         if con:
             con.close()
         return make_response(jsonify([]))
+
+# Public endpoints for dashboard statistics (no login required)
+@app.route("/public/categorias/count")
+def getPublicCategoriasCount():
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"count": 0}))
+
+    try:
+        cursor = con.cursor()
+        sql = "SELECT COUNT(*) FROM categorias"
+        cursor.execute(sql)
+        count = cursor.fetchone()[0]
+        cursor.close()
+        con.close()
+        return make_response(jsonify({"count": count}))
+    except Exception as e:
+        print(f"Error getting categorias count: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"count": 0}))
+
+@app.route("/public/pendientes/count")
+def getPublicPendientesCount():
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"total": 0, "completados": 0}))
+
+    try:
+        cursor = con.cursor()
+        sql_total = "SELECT COUNT(*) FROM pendientes"
+        sql_completados = "SELECT COUNT(*) FROM pendientes WHERE estado = 'completado'"
+        
+        cursor.execute(sql_total)
+        total = cursor.fetchone()[0]
+        
+        cursor.execute(sql_completados)
+        completados = cursor.fetchone()[0]
+        
+        cursor.close()
+        con.close()
+        return make_response(jsonify({"total": total, "completados": completados}))
+    except Exception as e:
+        print(f"Error getting pendientes count: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"total": 0, "completados": 0}))
+
+@app.route("/public/recordatorios/count")
+def getPublicRecordatoriosCount():
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"count": 0}))
+
+    try:
+        cursor = con.cursor()
+        sql = "SELECT COUNT(*) FROM recordatorios"
+        cursor.execute(sql)
+        count = cursor.fetchone()[0]
+        cursor.close()
+        con.close()
+        return make_response(jsonify({"count": count}))
+    except Exception as e:
+        print(f"Error getting recordatorios count: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"count": 0}))
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)

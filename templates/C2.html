@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Arquitectura de la Aplicación Flask - Modelo C4 (Diagrama C3)</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <pre class="mermaid">
+graph TB
+    User[👤 Usuario]
+    
+    subgraph "Sistema de Recordatorios y Pendientes"
+        subgraph "Lado del Cliente"
+            Browser[🌐 Navegador Web<br/><br/>SPA AngularJS<br/>Interfaz Bootstrap<br/>jQuery<br/><br/>Proporciona la interfaz de usuario<br/>y la lógica del lado del cliente]
+        end
+        
+        subgraph "Lado del Servidor"
+            WebServer[🖥️ Servidor Web Flask<br/><br/>Aplicación Python Flask<br/>API RESTful<br/>Gestión de Sesiones<br/><br/>Maneja peticiones HTTP<br/>y lógica de negocio]
+        end
+        
+        subgraph "Capa de Datos"
+            Database[(🗄️ Base de Datos MySQL<br/><br/>Base de datos relacional<br/>ORM SQLAlchemy<br/><br/>Almacena usuarios, categorías,<br/>tareas y recordatorios)]
+        end
+    end
+    
+    subgraph "Servicios Externos"
+        PusherService[📡 Servicio Pusher<br/><br/>Mensajería en tiempo real<br/>Conexiones WebSocket<br/><br/>Difunde cambios de datos<br/>a los clientes conectados]
+    end
+    
+    User -->|"HTTPS/HTTP"| Browser
+    Browser -->|"Llamadas API REST<br/>Datos JSON/Formulario"| WebServer
+    WebServer -->|"Consultas SQL<br/>vía SQLAlchemy"| Database
+    WebServer -->|"Eventos WebSocket<br/>Actualizaciones en tiempo real"| PusherService
+    PusherService -->|"Mensajes WebSocket<br/>Notificaciones en tiempo real"| Browser
+    
+    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef clientClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef serverClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    
+    class User userClass
+    class Browser clientClass
+    class WebServer serverClass
+    class Database dataClass
+    class PusherService externalClass
+</pre>
+</body>
+</html>

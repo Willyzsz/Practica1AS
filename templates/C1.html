@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Arquitectura de la Aplicación Flask - Modelo C4 (Diagrama C3)</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <pre class="mermaid">
+graph TB
+    Usuario[👤 Usuario<br/>Gestiona tareas y recordatorios]
+    
+    subgraph "Sistema de Recordatorios To-Do"
+        AplicacionWeb[🌐 Aplicación Web<br/>de Recordatorios To-Do<br/><br/>Gestiona tareas, categorías<br/>y recordatorios con<br/>actualizaciones en tiempo real]
+    end
+    
+    subgraph "Sistemas Externos"
+        Pusher[📡 Pusher<br/>Servicio de mensajería<br/>en tiempo real<br/><br/>Proporciona notificaciones<br/>en tiempo real para<br/>actualizaciones de datos]
+    end
+    
+    Usuario -->|"Crea, edita y elimina<br/>tareas y recordatorios"| AplicacionWeb
+    AplicacionWeb -->|"Envía notificaciones<br/>de actualización en tiempo real"| Pusher
+    Pusher -->|"Entrega notificaciones<br/>a los clientes conectados"| Usuario
+    
+    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef systemClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef externalClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    
+    class Usuario userClass
+    class AplicacionWeb systemClass
+    class Pusher externalClass
+</pre>
+</body>
+</html>

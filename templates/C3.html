@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Arquitectura de la Aplicación Flask - Modelo C4 (Diagrama C3)</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <pre class="mermaid">
+graph TB
+    subgraph "Contenedor del Servidor Web Flask"
+        subgraph "Capa de Presentación"
+            AuthController[🔐 Controlador de Autenticación<br/><br/>Inicio/cierre de sesión<br/>Gestión de sesiones<br/>Protección de rutas]
+            
+            CategoryController[📁 Controlador de Categorías<br/><br/>Operaciones CRUD<br/>para categorías<br/>Endpoints REST]
+            
+            TaskController[✅ Controlador de Pendientes<br/><br/>Operaciones CRUD<br/>para pendientes<br/>Endpoints REST]
+            
+            ReminderController[🔔 Controlador de Recordatorios<br/><br/>Operaciones CRUD<br/>para recordatorios<br/>Patrón Blueprint]
+        end
+        
+        subgraph "Capa de Lógica de Negocio"
+            ReminderService[🔔 Servicio de Recordatorios<br/><br/>Lógica de negocio<br/>para recordatorios<br/>Validación de datos]
+        end
+        
+        subgraph "Capa de Acceso a Datos"
+            ReminderRepository[🔔 Repositorio de Recordatorios<br/><br/>Persistencia de datos<br/>Operaciones SQLAlchemy<br/>Métodos CRUD]
+            
+            DatabaseAccess[🗄️ Acceso a Base de Datos<br/><br/>Consultas SQL directas<br/>Gestión de conexiones<br/>Operaciones en crudo]
+        end
+        
+        subgraph "Integración Externa"
+            PusherIntegration[📡 Integración con Pusher<br/><br/>Notificaciones en tiempo real<br/>Difusión de eventos<br/>Gestión de canales]
+        end
+        
+        subgraph "Modelos de Datos"
+            DataModels[📊 Modelos de Datos<br/><br/>Modelos SQLAlchemy<br/>Entidades: Categoría,<br/>Pendiente, Recordatorio]
+        end
+    end
+    
+    subgraph "Dependencias Externas"
+        MySQL[(🗄️ Base de Datos MySQL)]
+        PusherAPI[📡 API de Pusher]
+    end
+    
+    AuthController --> DatabaseAccess
+    CategoryController --> DatabaseAccess
+    TaskController --> DatabaseAccess
+    ReminderController --> ReminderService
+    ReminderService --> ReminderRepository
+    ReminderRepository --> DataModels
+    DatabaseAccess --> MySQL
+    DataModels --> MySQL
+    PusherIntegration --> PusherAPI
+    
+    CategoryController --> PusherIntegration
+    TaskController --> PusherIntegration
+    
+    classDef controllerClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef serviceClass fill:#f1f8e9,stroke:#388e3c,stroke-width:2px
+    classDef repositoryClass fill:#fff8e1,stroke:#f57c00,stroke-width:2px
+    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef modelClass fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    
+    class AuthController,CategoryController,TaskController,ReminderController controllerClass
+    class ReminderService serviceClass
+    class ReminderRepository,DatabaseAccess repositoryClass
+    class DataModels modelClass
+    class MySQL,PusherAPI externalClass
+    class PusherIntegration dataClass
+  </pre>
+</body>
+</html>
