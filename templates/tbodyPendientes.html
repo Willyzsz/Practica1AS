@@ -4,8 +4,26 @@
     <td>{{ pendiente.tituloPendiente }}</td>
     <td>{{ pendiente.descripcion }}</td>
     <td>
-        {{ pendiente.estado }}
+        <span class="badge 
+            {% if pendiente.estado == 'completado' %}bg-success
+            {% elif pendiente.estado == 'en_progreso' %}bg-warning
+            {% else %}bg-danger{% endif %}">
+            {{ pendiente.estado }}
+        </span>
     </td>
     <td>{{ pendiente.nombreCategoria or 'Sin categoría' }}</td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary btn-editar-pendiente" 
+                data-id="{{ pendiente.idPendiente }}" 
+                data-titulo="{{ pendiente.tituloPendiente }}"
+                data-descripcion="{{ pendiente.descripcion }}"
+                data-estado="{{ pendiente.estado }}"
+                data-categoria="{{ pendiente.idCategoria or '' }}">
+            <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger btn-eliminar-pendiente" data-id="{{ pendiente.idPendiente }}">
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
 </tr>
 {% endfor %}

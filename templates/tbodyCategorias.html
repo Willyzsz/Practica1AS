@@ -2,5 +2,13 @@
 <tr>
     <td>{{ categoria.idCategoria }}</td>
     <td>{{ categoria.nombreCategoria }}</td>
+    <td>
+        <button class="btn btn-sm btn-outline-primary btn-editar-categoria" data-id="{{ categoria.idCategoria }}" data-nombre="{{ categoria.nombreCategoria }}">
+            <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger btn-eliminar-categoria" data-id="{{ categoria.idCategoria }}">
+            <i class="bi bi-trash"></i>
+        </button>
+    </td>
 </tr>
 {% endfor %}

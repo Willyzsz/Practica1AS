@@ -1,0 +1,258 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="bi bi-clipboard-check me-2"></i>
+                    Dashboard - To-Do App
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Stats -->
+        <div class="col-md-3 mb-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalCategorias">-</h4>
+                            <p class="card-text">Categorías</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-tags fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalPendientes">-</h4>
+                            <p class="card-text">Pendientes</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-list-task fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="totalRecordatorios">-</h4>
+                            <p class="card-text">Recordatorios</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-bell fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title" id="pendientesCompletados">-</h4>
+                            <p class="card-text">Completados</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-lightning me-2"></i>
+                        Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="#/categorias" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Nueva Categoría
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="#/pendientes" class="btn btn-warning w-100">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Nuevo Pendiente
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="#/recordatorios" class="btn btn-info w-100">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Nuevo Recordatorio
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-success w-100" onclick="cargarEstadisticas()">
+                                <i class="bi bi-arrow-clockwise me-2"></i>
+                                Actualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-clock-history me-2"></i>
+                        Pendientes Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="pendientesRecientes">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-hourglass-split fs-1"></i>
+                            <p>Cargando pendientes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bell me-2"></i>
+                        Próximos Recordatorios
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="recordatoriosProximos">
+                        <div class="text-center text-muted">
+                            <i class="bi bi-hourglass-split fs-1"></i>
+                            <p>Cargando recordatorios...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cargarEstadisticas() {
+    // Cargar estadísticas de categorías
+    $.get("/categorias/all", function(data) {
+        $("#totalCategorias").text(data.length);
+    });
+
+    // Cargar estadísticas de pendientes
+    $.get("/pendientes/all", function(data) {
+        $("#totalPendientes").text(data.length);
+        
+        // Contar completados
+        let completados = 0;
+        data.forEach(function(pendiente) {
+            if (pendiente.estado === 'completado') {
+                completados++;
+            }
+        });
+        $("#pendientesCompletados").text(completados);
+    });
+
+    // Cargar estadísticas de recordatorios
+    $.get("/tbodyRecordatorios", function(html) {
+        const recordatorios = $(html).find("tr").length;
+        $("#totalRecordatorios").text(recordatorios);
+    });
+
+    // Cargar pendientes recientes
+    $.get("/tbodyPendientes", function(html) {
+        const pendientes = $(html).find("tr").slice(0, 5);
+        let htmlPendientes = "";
+        
+        if (pendientes.length === 0) {
+            htmlPendientes = '<div class="text-center text-muted"><p>No hay pendientes</p></div>';
+        } else {
+            pendientes.each(function() {
+                const titulo = $(this).find("td:eq(1)").text();
+                const estado = $(this).find("td:eq(3)").text();
+                const categoria = $(this).find("td:eq(4)").text();
+                
+                let badgeClass = "bg-secondary";
+                if (estado === "completado") badgeClass = "bg-success";
+                else if (estado === "en_progreso") badgeClass = "bg-warning";
+                else if (estado === "pendiente") badgeClass = "bg-danger";
+                
+                htmlPendientes += `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>${titulo}</strong><br>
+                            <small class="text-muted">${categoria}</small>
+                        </div>
+                        <span class="badge ${badgeClass}">${estado}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        $("#pendientesRecientes").html(htmlPendientes);
+    });
+
+    // Cargar recordatorios próximos
+    $.get("/tbodyRecordatorios", function(html) {
+        const recordatorios = $(html).find("tr").slice(0, 5);
+        let htmlRecordatorios = "";
+        
+        if (recordatorios.length === 0) {
+            htmlRecordatorios = '<div class="text-center text-muted"><p>No hay recordatorios</p></div>';
+        } else {
+            recordatorios.each(function() {
+                const pendiente = $(this).find("td:eq(1)").text();
+                const mensaje = $(this).find("td:eq(3)").text();
+                const fecha = $(this).find("td:eq(4)").text();
+                
+                htmlRecordatorios += `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                        <div>
+                            <strong>${pendiente}</strong><br>
+                            <small class="text-muted">${mensaje}</small><br>
+                            <small class="text-info">${fecha}</small>
+                        </div>
+                        <i class="bi bi-bell text-warning"></i>
+                    </div>
+                `;
+            });
+        }
+        
+        $("#recordatoriosProximos").html(htmlRecordatorios);
+    });
+}
+
+// Cargar estadísticas al cargar la página
+$(document).ready(function() {
+    cargarEstadisticas();
+});
+</script>

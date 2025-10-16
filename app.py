@@ -4,22 +4,19 @@
 # py -m ensurepip --upgrade
 # pip install -r requirements.txt
 
+from flask import Flask, render_template, request, jsonify, make_response, session, redirect, url_for
+from flask_cors import CORS, cross_origin
 
-from flask import Flask, render_template, request, jsonify, make_response
+from functools import wraps
+
 import mysql.connector
 import datetime
 import pytz
-from flask_cors import CORS, cross_origin
-from dotenv import load_dotenv
-import os
+import pusher
 
-load_dotenv()
-
-# Import SQLAlchemy db and blueprint
 from model_recordatorio import db
 from controller_recordatorio import recordatorio_bp
 
-# Database connection function
 def get_db_connection():
     try:
         con = mysql.connector.connect(
@@ -36,25 +33,28 @@ def get_db_connection():
         print(f"Database connection error: {err}")
         return None
 
-# Initialize connection
 con = get_db_connection()
-
 
 app = Flask(__name__)
 CORS(app)
 
-# Configuración de SQLAlchemy (ajusta la URI a tu base de datos si es necesario)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://u760464709_23005026_usr:H6eriHv6?@185.232.14.52:3306/u760464709_23005026_bd'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = "H6eriHv6?"
 db.init_app(app)
 
-# Registrar blueprint de recordatorio
 app.register_blueprint(recordatorio_bp)
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'idUsuario' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def pusherCategorias():
-    try:
-        import pusher
-        
+    try:        
         pusher_client = pusher.Pusher(
           app_id="2052295",
           key="2922c4803975e3f70a0d",
@@ -71,8 +71,6 @@ def pusherCategorias():
 
 def pusherPendientes():
     try:
-        import pusher
-
         pusher_client = pusher.Pusher(
             app_id="2052296",
             key="52712e9b9d8935dc32c5",
@@ -89,17 +87,26 @@ def pusherPendientes():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    if 'idUsuario' not in session:
+        return redirect(url_for('login'))
+    return render_template("index.html", session=session)
 
-@app.route("/app")
-def app2():
+@app.route("/login")
+def login():
     return render_template("login.html")
+
+@app.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html", session=session)
 
 @app.route("/iniciarSesion", methods=["POST"])
 def iniciarSesion():
+    print("Login attempt received")
     con = get_db_connection()
     if not con:
-        return make_response(jsonify([]))
+        print("Database connection failed")
+        return make_response(jsonify({"error": "Database connection failed"}))
 
     try:
         usuario    = request.form["txtUsuario"]
@@ -107,9 +114,8 @@ def iniciarSesion():
 
         cursor = con.cursor(dictionary=True)
         sql    = """
-        SELECT idUsuario
+        SELECT idUsuario, usuario
         FROM usuarios
-
         WHERE usuario = %s
         AND contrasena = %s
         """
@@ -120,18 +126,30 @@ def iniciarSesion():
         cursor.close()
         con.close()
 
-        return make_response(jsonify(registros))
+        if registros:
+            session['idUsuario'] = registros[0]['idUsuario']
+            session['username'] = registros[0]['usuario']
+            return redirect(url_for('index'))
+        else:
+            return make_response(jsonify({"error": "Invalid credentials"}))
     except Exception as e:
         print(f"Login error: {e}")
         if con:
             con.close()
-        return make_response(jsonify([]))
+        return make_response(jsonify({"error": "Login failed"}))
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
 
 @app.route("/categorias")
+@login_required
 def categorias():
     return render_template("categorias.html")
 
 @app.route("/tbodyCategorias")
+@login_required
 def tbodyCategorias():
     con = get_db_connection()
     if not con:
@@ -161,10 +179,12 @@ def tbodyCategorias():
         return render_template("tbodyCategorias.html", categorias=[])
 
 @app.route("/pendientes")
+@login_required
 def pendientes():
     return render_template("pendientes.html")
 
 @app.route("/tbodyPendientes")
+@login_required
 def tbodyPendientes():
     con = get_db_connection()
     if not con:
@@ -197,10 +217,12 @@ def tbodyPendientes():
         return render_template("tbodyPendientes.html", pendientes=[])
 
 @app.route("/recordatorios")
+@login_required
 def recordatorios():
     return render_template("recordatorios.html")
 
 @app.route("/tbodyRecordatorios")
+@login_required
 def tbodyRecordatorios():
     con = get_db_connection()
     if not con:
@@ -243,6 +265,7 @@ def tbodyRecordatorios():
 
 # CRUD operations for Categorias
 @app.route("/categoria", methods=["POST"])
+@login_required
 def guardarCategoria():
     con = get_db_connection()
     if not con:
@@ -282,8 +305,69 @@ def guardarCategoria():
             con.close()
         return make_response(jsonify({"error": str(e)}))
 
+@app.route("/categoria/<int:id>", methods=["GET"])
+@login_required
+def obtenerCategoria(id):
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"error": "Database connection failed"}))
+
+    try:
+        cursor = con.cursor(dictionary=True)
+        sql = """
+        SELECT idCategoria, nombreCategoria
+        FROM categorias
+        WHERE idCategoria = %s
+        """
+        val = (id,)
+        
+        cursor.execute(sql, val)
+        registro = cursor.fetchone()
+        cursor.close()
+        con.close()
+
+        if registro:
+            return make_response(jsonify(registro))
+        else:
+            return make_response(jsonify({"error": "Categoria not found"}), 404)
+    except Exception as e:
+        print(f"Error getting categoria: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"error": str(e)}))
+
+@app.route("/categoria/<int:id>", methods=["DELETE"])
+@login_required
+def eliminarCategoria(id):
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"error": "Database connection failed"}))
+
+    try:
+        cursor = con.cursor()
+        sql = """
+        DELETE FROM categorias
+        WHERE idCategoria = %s
+        """
+        val = (id,)
+        
+        cursor.execute(sql, val)
+        con.commit()
+        cursor.close()
+        con.close()
+
+        pusherCategorias()
+        
+        return make_response(jsonify({"success": True}))
+    except Exception as e:
+        print(f"Error deleting categoria: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"error": str(e)}))
+
 # CRUD operations for Pendientes
 @app.route("/pendiente", methods=["POST"])
+@login_required
 def guardarPendiente():
     con = get_db_connection()
     if not con:
@@ -329,10 +413,72 @@ def guardarPendiente():
             con.close()
         return make_response(jsonify({"error": str(e)}))
 
+@app.route("/pendiente/<int:id>", methods=["GET"])
+@login_required
+def obtenerPendiente(id):
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"error": "Database connection failed"}))
+
+    try:
+        cursor = con.cursor(dictionary=True)
+        sql = """
+        SELECT p.idPendiente, p.tituloPendiente, p.descripcion, p.estado, p.idCategoria, c.nombreCategoria
+        FROM pendientes p
+        LEFT JOIN categorias c ON p.idCategoria = c.idCategoria
+        WHERE p.idPendiente = %s
+        """
+        val = (id,)
+        
+        cursor.execute(sql, val)
+        registro = cursor.fetchone()
+        cursor.close()
+        con.close()
+
+        if registro:
+            return make_response(jsonify(registro))
+        else:
+            return make_response(jsonify({"error": "Pendiente not found"}), 404)
+    except Exception as e:
+        print(f"Error getting pendiente: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"error": str(e)}))
+
+@app.route("/pendiente/<int:id>", methods=["DELETE"])
+@login_required
+def eliminarPendiente(id):
+    con = get_db_connection()
+    if not con:
+        return make_response(jsonify({"error": "Database connection failed"}))
+
+    try:
+        cursor = con.cursor()
+        sql = """
+        DELETE FROM pendientes
+        WHERE idPendiente = %s
+        """
+        val = (id,)
+        
+        cursor.execute(sql, val)
+        con.commit()
+        cursor.close()
+        con.close()
+
+        pusherPendientes()
+        
+        return make_response(jsonify({"success": True}))
+    except Exception as e:
+        print(f"Error deleting pendiente: {e}")
+        if con:
+            con.close()
+        return make_response(jsonify({"error": str(e)}))
+
 ## La ruta /recordatorio ahora es manejada por el blueprint recordatorio_bp
 
 # Get all categorias for dropdowns
 @app.route("/categorias/all")
+@login_required
 def getAllCategorias():
     con = get_db_connection()
     if not con:
@@ -360,6 +506,7 @@ def getAllCategorias():
 
 # Get all pendientes for dropdowns
 @app.route("/pendientes/all")
+@login_required
 def getAllPendientes():
     con = get_db_connection()
     if not con:
