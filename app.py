@@ -20,10 +20,10 @@ from controller_recordatorio import recordatorio_bp
 def get_db_connection():
     try:
         con = mysql.connector.connect(
-            host="185.232.14.52",
-            database="u760464709_23005026_bd",
-            user="u760464709_23005026_usr",
-            password="H6eriHv6?",
+            host="",
+            database="",
+            user="",
+            password="",
             port=3306,
             autocommit=True,
             connect_timeout=10
@@ -38,9 +38,9 @@ con = get_db_connection()
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://u760464709_23005026_usr:H6eriHv6?@185.232.14.52:3306/u760464709_23005026_bd'
+app.config['SQLALCHEMY_DATABASE_URI'] = ''
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = "H6eriHv6?"
+app.secret_key = ""
 db.init_app(app)
 
 app.register_blueprint(recordatorio_bp)
@@ -56,9 +56,9 @@ def login_required(f):
 def pusherCategorias():
     try:        
         pusher_client = pusher.Pusher(
-          app_id="2052295",
-          key="2922c4803975e3f70a0d",
-          secret="6b31b50d572bf754fe60",
+          app_id="",
+          key="",
+          secret="",
           cluster="us2",
           ssl=True
         )
@@ -72,9 +72,9 @@ def pusherCategorias():
 def pusherPendientes():
     try:
         pusher_client = pusher.Pusher(
-            app_id="2052296",
-            key="52712e9b9d8935dc32c5",
-            secret="9249dda1e2e33c3d0233",
+            app_id="",
+            key="",
+            secret="",
             cluster="us2",
             ssl=True
         )
